@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SHL Assessment Recommender</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .box { border: 1px solid #ccc; padding: 1rem; border-radius: 8px; }
+        input { width: 70%; padding: 10px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>SHL Assessment Recommender</h1>
+    <div class="box">
+        <input type="text" id="query" placeholder="e.g., Hiring a Java Developer who is a team player...">
+        <button onclick="search()">Recommend</button>
+    </div>
+    <div id="loading" style="display:none;">Thinking...</div>
+    <table id="results">
+        <thead>
+            <tr>
+                <th>Assessment Name</th>
+                <th>Type</th>
+                <th>URL</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        async function search() {
+            const query = document.getElementById('query').value;
+            const table = document.querySelector('#results tbody');
+            const loading = document.getElementById('loading');
+            
+            table.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query})
+                });
+                const data = await response.json();
+                
+                data.recommended_assessments.forEach(item => {
+                    const row = `<tr>
+                        <td>${item.name}</td>
+                        <td>${item.test_type.join(', ')}</td>
+                        <td><a href="${item.url}" target="_blank">View</a></td>
+                    </tr>`;
+                    table.innerHTML += row;
+                });
+            } catch (e) {
+                alert("Error connecting to API");
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
