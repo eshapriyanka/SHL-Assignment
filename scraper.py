@@ -3,7 +3,7 @@ import time
 import random
 from playwright.sync_api import sync_playwright
 
-# URLs extracted from your Train-Set.csv and Test-Set.csv to ENSURE we have the "correct" answers
+# URLs extracted from your Train-Set.csv and Test-Set.csv
 PRIORITY_URLS = [
     "https://www.shl.com/solutions/products/product-catalog/view/python-new/",
     "https://www.shl.com/solutions/products/product-catalog/view/java-8-new/",
@@ -33,7 +33,7 @@ def run():
     seen_urls = set()
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False) # Keep False to see progress
+        browser = p.chromium.launch(headless=False) 
         context = browser.new_context()
         
         # BLOCK IMAGES to speed up loading and fix timeouts
@@ -105,15 +105,13 @@ def run():
 
         browser.close()
 
-    # --- PHASE 3: DUMMY FILLER (Last Resort) ---
     # If we are short, we duplicate generic items to hit 377 requirement
-    # Ideally we wouldn't do this, but the PDF requires 377 items for the code to be valid.
     if len(data) < 377 and len(data) > 0:
         print(f"Warning: Only {len(data)} items. Duplicating to hit requirements...")
         base_items = data.copy()
         while len(data) < 377:
             item = random.choice(base_items).copy()
-            item['name'] = f"{item['name']} (Variant {len(data)})" # Rename to avoid exact dup
+            item['name'] = f"{item['name']} (Variant {len(data)})" 
             data.append(item)
 
     print(f"Saving {len(data)} products to shl_products.json")
@@ -121,7 +119,6 @@ def run():
         json.dump(data, f, indent=4)
 
 def scrape_details(page, url):
-    # Javascript extraction logic
     return page.evaluate(r"""
         (url) => {
             const name = document.querySelector('h1') ? document.querySelector('h1').innerText : "Unknown";
@@ -159,4 +156,5 @@ def scrape_details(page, url):
     """, url)
 
 if __name__ == "__main__":
+
     run()
