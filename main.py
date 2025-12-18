@@ -9,21 +9,20 @@ from typing import List
 from sentence_transformers import SentenceTransformer, util
 import google.generativeai as genai
 
-# --- CONFIGURATION ---
-GOOGLE_API_KEY = "AIzaSyCS0_Xl4QLRkVJtiBO1cdU0yMmQOHMXpEQ" # <--- PASTE YOUR KEY HERE
+GOOGLE_API_KEY = "AIzaSyCS0_Xl4QLRkVJtiBO1cdU0yMmQOHMXpEQ" 
 genai.configure(api_key=GOOGLE_API_KEY)
 model_gemini = genai.GenerativeModel('gemini-1.5-flash')
 
 app = FastAPI()
 
-# Mount frontend
+# frontend
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def read_root():
     return FileResponse('static/index.html')
 
-# --- 1. LOAD & INDEX ---
+# LOAD & INDEX
 print("Loading Data...")
 try:
     with open('shl_products.json', 'r') as f:
@@ -37,7 +36,7 @@ embedder = SentenceTransformer('all-MiniLM-L6-v2')
 corpus_texts = [f"{p['name']} {p.get('description', '')}" for p in products]
 corpus_embeddings = embedder.encode(corpus_texts, convert_to_tensor=True)
 
-# --- 2. LOGIC ---
+# LOGIC
 def perform_search(query_text, k=25):
     if not products: return []
     query_vec = embedder.encode(query_text, convert_to_tensor=True)
@@ -65,7 +64,7 @@ def llm_rerank(user_query, candidates):
     except:
         return candidates[:10]
 
-# --- 3. API ---
+# 3. API 
 class QueryRequest(BaseModel):
     query: str
 
@@ -75,7 +74,7 @@ def recommend(request: QueryRequest):
     final = llm_rerank(request.query, cands)
     return {"recommended_assessments": final}
 
-# --- 4. CSV GENERATION (HARDCODED QUERIES) ---
+# 4. CSV GENERATION (HARDCODED QUERIES)
 # These are the exact queries from the Test Set.
 TEST_QUERIES = [
     "Looking to hire mid-level professionals who are proficient in Python, SQL and Java Script. Need an assessment package that can test all skills with max duration of 60 minutes.",
@@ -106,4 +105,5 @@ def generate_csv():
 if __name__ == "__main__":
     generate_csv()
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
